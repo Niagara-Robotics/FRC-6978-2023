@@ -10,6 +10,6 @@ public class Tasks {
 
     public static IPeriodicTask[] teleopTasks = {
         (IPeriodicTask)differentialDrive,
-        (IPeriodicTask)arm
+        //(IPeriodicTask)arm
     };
 }

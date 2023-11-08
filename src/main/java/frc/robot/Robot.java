@@ -19,7 +19,7 @@ public class Robot extends TimedRobot{
     protected void loopFunc() {
         Tasks.telemetry.openFrame();
         super.loopFunc();
-        Tasks.telemetry.closeFrame();
+        //Tasks.telemetry.closeFrame();
     }
 
     @Override
@@ -29,6 +29,7 @@ public class Robot extends TimedRobot{
             Schedulers.teleopScheduler.add(RunContext.teleoperated, task);
         }
     }
+
 
     @Override
     public void teleopPeriodic() {

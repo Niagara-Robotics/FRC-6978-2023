@@ -43,8 +43,10 @@ public class Hardware {
 
     public static void configureHardware() {
         //Drive motors
-        leftDrive1.setInverted(true);
-        leftDrive2.setInverted(true);
+        leftDrive1.setInverted(false);
+        leftDrive2.setInverted(false);
+        rightDrive1.setInverted(true);
+        rightDrive2.setInverted(true);
 
         leftDrive2.set(ControlMode.Follower, 1);
         rightDrive2.set(ControlMode.Follower, 3);

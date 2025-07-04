@@ -3,9 +3,11 @@ package frc.robot.Tasks;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Framework.IPeriodicTask;
 import frc.robot.Framework.PIDController;
 import frc.robot.Framework.RunContext;
@@ -18,7 +20,8 @@ public class DifferentialDrive implements IPeriodicTask{
         stick,
         balance,
         heading,
-        distance
+        distance,
+        calibrate,
     };
     DriveMode mode;
 
@@ -34,6 +37,7 @@ public class DifferentialDrive implements IPeriodicTask{
     );
 
     boolean gearShiftState;
+    Timer calibrationTimer;
     
     public DifferentialDrive() {
     }
@@ -59,7 +63,13 @@ public class DifferentialDrive implements IPeriodicTask{
 
         //FIXME: what was this meant to do???
         if(Hardware.driverStick.getRawButtonReleased(Constants.DriverControls.balance)) {
-            //useStick();
+            useStick();
+        }
+
+        if(Hardware.driverStick.getRawButtonPressed(1)) {
+            calibrationTimer = new Timer();
+            calibrationTimer.start();
+            mode = DriveMode.calibrate;
         }
         
         switch (mode) {
@@ -69,6 +79,8 @@ public class DifferentialDrive implements IPeriodicTask{
             case balance:
                 onBalance();
                 break;
+            case calibrate:
+                onCalibrateFeedforward();
             default:
                 break;
         }
@@ -118,6 +130,19 @@ public class DifferentialDrive implements IPeriodicTask{
             );
     }
 
+    void onCalibrateFeedforward() {
+        if(calibrationTimer.get() > 10) {
+            mode = DriveMode.stick;
+        }
+        double input = ((int)((calibrationTimer.get() / 10.0) * 10)) / 10;
+
+        Tasks.telemetry.pushDouble("leftFeedForwardRatio", input / Hardware.leftDrive1.getVelocity().getValue());
+        Tasks.telemetry.pushDouble("rightFeedForwardRatio", input / Hardware.rightDrive1.getVelocity().getValue());
+
+        Hardware.leftDrive1.setControl(new VoltageOut(input));
+        Hardware.rightDrive1.setControl(new VoltageOut(input));
+    }
+
     public void balance() {
         Tasks.telemetry.pushEvent("DifferentialDrive.EnterBalance");
 
@@ -150,11 +175,11 @@ public class DifferentialDrive implements IPeriodicTask{
         double rightSpeed = (y - x)*Constants.Drive.maxVelocity;
 
         if(x == 0 && y == 0) {
-            Hardware.leftDrive1.set(ControlMode.Disabled, 0);
-            Hardware.rightDrive1.set(ControlMode.Disabled, 0);
+            Hardware.leftDrive1.setControl(new NeutralOut());
+            Hardware.rightDrive1.setControl(new NeutralOut());
         } else {
-            Hardware.leftDrive1.set(ControlMode.Velocity, leftSpeed);
-            Hardware.rightDrive1.set(ControlMode.Velocity, rightSpeed);
+            //Hardware.leftDrive1.set(ControlMode.Velocity, leftSpeed);
+            //Hardware.rightDrive1.set(ControlMode.Velocity, rightSpeed);
             Tasks.telemetry.pushDouble("DifferentialDrive.leftVelocityTarget", leftSpeed);
             Tasks.telemetry.pushDouble("DifferentialDrive.rightVelocityTarget", rightSpeed);
         }
@@ -163,7 +188,7 @@ public class DifferentialDrive implements IPeriodicTask{
     void setBrake(boolean brake) {
         Tasks.telemetry.pushEvent("DifferentialDrive.SetBrakeMode");
         Tasks.telemetry.pushBoolean("DifferentialDrive.BrakeMode", brake);
-        NeutralMode neutralMode = brake? NeutralMode.Brake : NeutralMode.Coast; 
+        NeutralModeValue neutralMode = brake? NeutralModeValue.Brake : NeutralModeValue.Coast; 
         Hardware.leftDrive1.setNeutralMode(neutralMode);
         Hardware.leftDrive2.setNeutralMode(neutralMode);
         Hardware.rightDrive1.setNeutralMode(neutralMode);

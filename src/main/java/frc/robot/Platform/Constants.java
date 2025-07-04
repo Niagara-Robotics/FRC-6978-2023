@@ -4,9 +4,11 @@ import java.util.HashMap;
 
 public class Constants {
     public static class Drive {
-        public static double kP = 0.01;
-        public static double kI = 0.0003;
-        public static double kD = 1;
+        public static double kP = 0.0;
+        public static double kI = 0.0;
+        public static double kD = 0.0;
+        public static double kFright = 0.01;
+        public static double kFleft = 0.01;
 
         public static double peakOutput = 1;
 
